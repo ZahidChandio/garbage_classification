@@ -28,3 +28,11 @@ To run the project locally, follow these steps:
 
 ## Install Dependencies
  Steps are given in Readme.txt for both the frontend and the backend.
+
+## Usage
+- Upload an image containing garbage.
+- The system will classify the garbage type and display nearby dustbin locations suitable for proper disposal.
+- Explore the categorized garbage types and locate the nearest dustbins accordingly.
+
+## Contributing
+- Contributions are welcome! If you find any issues or have suggestions for improvements, please open an issue or submit a pull request.
