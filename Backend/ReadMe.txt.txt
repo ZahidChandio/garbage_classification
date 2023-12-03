@@ -9,6 +9,7 @@ Open VS code terminal and run below commands
 > python -m pip install django-cors-headers
 > python -m pip install djangorestframework
 > python -m pip install Pillow
+> python -m pip install --upgrade keras
 
 Requirements:
 Install Python
