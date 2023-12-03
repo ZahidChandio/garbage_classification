@@ -1,9 +1,14 @@
 Open Project in IDE (VS Code)
 Open VS code terminal and run below commands
 > python -m venv my_venv
-> pip install numpy
-> pip install tensorflow
-> pip install keras	
+> my_venv\Scripts\active
+> python -m pip install numpy
+> python -m pip install tensorflow
+> python -m pip install keras	
+> python -m pip install django
+> python -m pip install django-cors-headers
+> python -m pip install djangorestframework
+> python -m pip install Pillow
 
 Requirements:
 Install Python
