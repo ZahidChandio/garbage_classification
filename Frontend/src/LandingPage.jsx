@@ -14,12 +14,14 @@ import 'swiper/css/pagination';
 import 'swiper/css/navigation';
 
 import { Pagination, Navigation, Autoplay } from 'swiper/modules';
+import axios from 'axios';
 
 const LandingPage = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [classifiedImage, setClassifiedImage] = useState(null);
   const [location, setLocation] = useState(null);
+  // const location = [37.7489532, -122.4445678,18.51]
   const [dustbins, setDustbins] = useState([]);
   SwiperCore.use([Autoplay]);
 
@@ -37,9 +39,7 @@ const LandingPage = () => {
       .then((response) => response.json())
       .then((result) => {
         console.log('Success:', result);
-        setIsProcessing(false);
-        console.log(result.file);
-        
+        setIsProcessing(false);        
         setClassifiedImage(result.image_label);
       })
       .catch((error) => {
@@ -68,19 +68,25 @@ const LandingPage = () => {
             latitude,
             longitude
           ]);    
-
-          const backendResponse = {
-            data : [
-            { type: 'cardboard', location: { latitude: latitude + 0.01, longitude: longitude + 0.01 } },
-            { type: 'glass', location: { latitude: latitude + 0.005, longitude: longitude - 0.005 } },
-            { type: 'metal', location: { latitude: latitude - 0.01, longitude: longitude - 0.01 } },
-            { type: 'paper', location: { latitude: latitude - 0.01, longitude: longitude - 0.01 } },
-            { type: 'plastic', location: { latitude: latitude - 0.01, longitude: longitude - 0.01 } },
-            { type: 'trash', location: { latitude: latitude - 0.01, longitude: longitude - 0.01 } },
-          ]};
-          
-          const filteredDustbins = backendResponse.data.filter(dustbin => dustbin.type === classifiedImage);
-          setDustbins(filteredDustbins);    
+          if(classifiedImage) {
+            const API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY; 
+            const apiUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=5000&type=${classifiedImage+" dustbins"}&key=${API_KEY}`;
+            axios.get(apiUrl)
+            .then(response => {
+              console.log(response.data);
+              console.log(response.data.results);
+              const dustbins = response.data.results.map(dustbin => {
+                return {
+                  type: dustbin?.name,
+                  location: { latitude: dustbin.geometry.location.lat, longitude: dustbin.geometry.location.lng }
+                }
+              });
+              setDustbins(dustbins);
+            })
+            .catch(error => {
+              console.error('Error fetching dustbins data:', error);
+            });
+          } 
         },
         (error) => {
           console.error("Error getting location:", error.message);
@@ -162,8 +168,10 @@ const LandingPage = () => {
           }
         </OuputDiv>
       { classifiedImage && <MapOutputLabel>{classifiedImage.toUpperCase()} dustbins near your location: </MapOutputLabel>}
+      
       {/* Map */}
-      {location && <MapContainer center={location} zoom={13} scrollWheelZoom={true} style={{ height: '450px', width: '100%' }}>
+      {location && 
+      <MapContainer center={location} zoom={13} scrollWheelZoom={true} style={{ height: '450px', width: '100%' }}>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -176,15 +184,16 @@ const LandingPage = () => {
           </Marker>
         }
         {dustbins.length > 0 && 
-        dustbins.map((dustbin, index) => (
-          <Marker
-            key={index}
-            position={[dustbin.location.latitude, dustbin.location.longitude]}
-            icon={dustbinLocationIcon}
-          >
-            <Popup>{`Dustbin Type: ${dustbin.type}`}</Popup>
-          </Marker>
-        ))}
+          dustbins.map((dustbin, index) => (
+            <Marker
+              key={index}
+              position={[dustbin.location.latitude, dustbin.location.longitude]}
+              icon={dustbinLocationIcon}
+            >
+              <Popup>{`Dustbin Type: ${dustbin.type}`}</Popup>
+            </Marker>
+          ))
+        }
       </MapContainer>}
     </Container>
   );
